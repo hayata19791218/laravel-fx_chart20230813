@@ -1,0 +1,29 @@
+.chart-container{
+    height:40vh; 
+    width:80vw;
+    margin-left:auto;
+    margin-right:auto;
+    padding: 20px;
+    @media screen and (min-width:768px){
+        padding: 40px;
+    }
+    .create{
+        display: block;
+        margin-top: 20px;
+        font-size: 13px;
+        color:red;
+        @media screen and (min-width:768px){
+            font-size: 16px;
+        }
+    }
+    h1{
+        font-size: 16px;
+        width:fit-content;
+        margin-left:auto;
+        margin-right:auto;
+        margin-bottom: 30px;
+        @media screen and (min-width:768px){
+            font-size: 20px;
+        }
+    }
+}

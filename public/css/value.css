@@ -1,0 +1,54 @@
+.container {
+  padding: 20px;
+}
+@media screen and (min-width: 768px) {
+  .container {
+    padding: 40px;
+  }
+}
+.container .session {
+  color: red;
+  margin-bottom: 30px;
+  font-weight: bold;
+}
+.container .high-value {
+  margin-bottom: 10px;
+}
+.container .high-value input {
+  height: 30px;
+  display: inline-block;
+  width: 50vw;
+}
+.container .row-value {
+  margin-bottom: 10px;
+}
+.container .row-value input {
+  height: 30px;
+  display: inline-block;
+  width: 50vw;
+}
+.container .date {
+  margin-bottom: 10px;
+}
+.container .date input {
+  height: 30px;
+}
+.container .submit {
+  margin-bottom: 10px;
+}
+.container .submit input {
+  height: 30px;
+}
+.container h1 {
+  font-size: 16px;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 30px;
+}
+@media screen and (min-width: 768px) {
+  .container h1 {
+    font-size: 20px;
+  }
+}
