@@ -30,6 +30,7 @@
                 <input type="submit" value="登録する">
             </div>
         </form>
+        <a href="/">チャートのページに戻る</a>
     </div>
 </body>
 </html>

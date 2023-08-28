@@ -52,3 +52,14 @@
     font-size: 20px;
   }
 }
+.container a {
+  display: block;
+  font-size: 13px;
+  color: red;
+  margin-top: 20px;
+}
+@media screen and (min-width: 768px) {
+  .container a {
+    font-size: 16px;
+  }
+}
