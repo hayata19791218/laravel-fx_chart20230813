@@ -68,11 +68,13 @@
                                     maxTricksLimit: 1
                                 }
                             }],
-                        }
+                        },
+                        maintainAspectRatio: false
                     }
                 });
             </script>
-            <a href=" {{route('fx.create')}} " class="create">値を登録する</a>
+            <a href="{{ route('fx.create') }}" class="create">値を登録する</a>
+            <a href="{{ route('fx.admin') }}" class="admin">管理画面</a>
         </div>
     </body>
 </html>

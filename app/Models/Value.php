@@ -38,4 +38,19 @@ class Value extends Model
         $this->date = $inputs['date'];
         $this->save();
     }
+
+    /**
+    * チャートの値の表示
+    */
+    function valueAdmin($request){
+        $value = Value::all();
+        return $value;
+    }
+
+    /**
+    * 値の削除
+    */
+    function valueDelete($request){
+        $this->delete();
+    }
 }
