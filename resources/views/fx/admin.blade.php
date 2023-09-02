@@ -23,7 +23,7 @@
                 <th></th>
             </tr>
             @foreach($editDatas as $editData)
-            <tr>
+            <tr id="row">
                 <td>{{ $editData->date }}</td>
                 <td>{{ $editData->high_value }}</td>
                 <td>{{ $editData->row_value }}</td>
@@ -32,7 +32,7 @@
                     <form method="post" action="{{ route('fx.delete', ['value' => $editData]) }}">
                         @csrf
                         @method('DELETE')
-                        <button onClick="return confirm('本当に削除しますか？');">削除</button>
+                        <button id="delete">削除</button>
                     </form>
                 </td>
             </tr>
@@ -40,7 +40,6 @@
         </table>
         <a href="/" class="back">チャートのページに戻る</a>
     </div>
+    <script type="text/javascript" src="{{ asset('js/common.js') }}"></script>
 </body>
 </html>
-
-
