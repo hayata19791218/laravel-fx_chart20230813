@@ -12,7 +12,7 @@
         <div class="chart-container">
             <h1>ドル円のチャート表</h1>
             <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.3/Chart.bundle.min.js"></script>
-            <canvas id="myChart" ></canvas>
+            <canvas id="myChart"></canvas>
             <script>
                 let data = @json($chartData);
                 var ctx = document.getElementById('myChart').getContext('2d');
