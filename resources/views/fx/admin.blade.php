@@ -40,6 +40,6 @@
         </table>
         <a href="/" class="back">チャートのページに戻る</a>
     </div>
-    <script type="text/javascript" src="{{ asset('js/admin.js') }}"></script>
+    <script src="{{ asset('js/admin.js') }}"></script>
 </body>
 </html>
