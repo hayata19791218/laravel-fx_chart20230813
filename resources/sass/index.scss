@@ -5,7 +5,8 @@
     margin-right:auto;
     padding: 20px;
     @media screen and (min-width:768px){
-        padding: 40px;
+        padding: 20px;
+        height: 600px;
     }
     .create, .admin{
         display: block;
