@@ -17,5 +17,8 @@
         "resolve-url-loader": "^5.0.0",
         "sass": "^1.65.1",
         "sass-loader": "^12.6.0"
+    },
+    "dependencies": {
+        "chart.js": "^2.7.3"
     }
 }

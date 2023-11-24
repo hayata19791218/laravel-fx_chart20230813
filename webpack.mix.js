@@ -18,5 +18,4 @@ mix.js('resources/js/app.js', 'public/js')
     .sass('resources/sass/value.scss', 'public/css')
     .sass('resources/sass/admin.scss', 'public/css')
     .postCss('resources/css/app.css', 'public/css', [
-        //
     ]);

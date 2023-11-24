@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Support\Facades\DB;
+
 class Value extends Model
 {
     use HasFactory;
@@ -13,7 +15,9 @@ class Value extends Model
     * チャートに表示する値の登録
     */
     function valueShow($request){
-        $data = Value::all();
+        // $data = Value::all();
+
+        $data = DB::table('values')->get();
         $chartData = [
             'values' => $data->pluck('high_value'),
             'values2' => $data->pluck('row_value'),
