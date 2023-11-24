@@ -51,8 +51,8 @@
                             yAxes: [{
                                 ticks: {     
                                     beginAtZero: true,
-                                    max: 153,
-                                    min: 147
+                                    max: 152,
+                                    min: 146
                                 }
                             }],
                             xAxes: [{
