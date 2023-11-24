@@ -162,11 +162,6 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
-
-
-        
-        App\Providers\ExampleProvider::class,
-
         /*
          * Package Service Providers...
          */
