@@ -52,7 +52,7 @@
                                 ticks: {     
                                     beginAtZero: true,
                                     max: 152,
-                                    min: 146
+                                    min: 140
                                 }
                             }],
                             xAxes: [{

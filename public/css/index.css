@@ -1,1 +1,41 @@
-.chart-container{height:400px;margin-left:auto;margin-right:auto;overflow-x:hidden;padding:20px;width:100vw}@media screen and (min-width:768px){.chart-container{height:600px;padding:20px}}.chart-container .admin,.chart-container .create{color:red;display:block;font-size:13px;margin-top:20px;transition-duration:.3s}@media screen and (min-width:768px){.chart-container .admin,.chart-container .create{font-size:16px}}.chart-container .admin:hover,.chart-container .create:hover{opacity:.5;transition-duration:.3s}.chart-container h1{font-size:16px;margin-bottom:30px;margin-left:auto;margin-right:auto;width:-moz-fit-content;width:fit-content}@media screen and (min-width:768px){.chart-container h1{font-size:20px}}
+.chart-container {
+  width: 100vw;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
+}
+@media screen and (min-width: 768px) {
+  .chart-container {
+    padding: 20px;
+    height: 600px;
+  }
+}
+.chart-container .create, .chart-container .admin {
+  display: block;
+  margin-top: 20px;
+  font-size: 13px;
+  color: red;
+  transition-duration: 0.3s;
+}
+@media screen and (min-width: 768px) {
+  .chart-container .create, .chart-container .admin {
+    font-size: 16px;
+  }
+}
+.chart-container .create:hover, .chart-container .admin:hover {
+  opacity: 0.5;
+  transition-duration: 0.3s;
+}
+.chart-container h1 {
+  font-size: 16px;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 30px;
+}
+@media screen and (min-width: 768px) {
+  .chart-container h1 {
+    font-size: 20px;
+  }
+}

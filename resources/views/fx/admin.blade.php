@@ -39,6 +39,7 @@
             @endforeach
         </table>
         <a href="/" class="back">チャートのページに戻る</a>
+        <a href="{{ route('fx.admin') }}" class="admin">管理画面</a>
     </div>
     <script src="{{ asset('js/admin.js') }}"></script>
 </body>
