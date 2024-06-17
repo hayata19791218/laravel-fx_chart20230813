@@ -13,18 +13,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-/**
-* 無効なURLはリダイレクト
-*/
 Route::fallback(function () {
     return redirect('/');
 });
 
-/**
-* 20行目:トップページ
-* 21行目:値を登録するページ
-* 22行目:値の保存
-*/
+
 Route::controller(ChartController::class)->group(function(){
     Route::get('/', 'index');
     Route::get('/create', 'create')->name('fx.create');
@@ -34,3 +27,5 @@ Route::controller(ChartController::class)->group(function(){
     Route::put('/admin/update/{value}', 'update')->name('fx.update');
     Route::delete('/adimin/delete/{value}', 'delete')->name('fx.delete');
 });
+
+require __DIR__.'/auth.php';
