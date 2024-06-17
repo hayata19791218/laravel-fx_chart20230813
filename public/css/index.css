@@ -26,7 +26,8 @@
   opacity: 0.5;
   transition-duration: 0.3s;
 }
-.chart-container h1 {
+
+h1 {
   font-size: 16px;
   width: -moz-fit-content;
   width: fit-content;
@@ -35,7 +36,28 @@
   margin-bottom: 30px;
 }
 @media screen and (min-width: 768px) {
-  .chart-container h1 {
+  h1 {
     font-size: 20px;
+  }
+}
+
+header {
+  padding: 30px;
+}
+header ul {
+  display: flex;
+  -moz-column-gap: 10px;
+       column-gap: 10px;
+}
+header li {
+  list-style: none;
+}
+header a {
+  font-size: 13px;
+  color: #000;
+}
+@media screen and (min-width: 768px) {
+  header a {
+    font-size: 16px;
   }
 }

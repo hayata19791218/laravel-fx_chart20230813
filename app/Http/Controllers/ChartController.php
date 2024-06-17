@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Value;
-
+use Illuminate\Support\Facades\Auth;
 
 
 class ChartController extends Controller
@@ -15,8 +15,14 @@ class ChartController extends Controller
     public function index(Value $value, Request $request)
     {
         $chartData = $value->valueShow($request);
+
+        $user_name = null;
+
+        if (Auth::check()) {
+            $user_name = Auth::user()->name;
+        }
         
-        return view('fx.chart', compact('chartData'));
+        return view('fx.chart', compact('chartData', 'user_name'));
     }
 
     /**

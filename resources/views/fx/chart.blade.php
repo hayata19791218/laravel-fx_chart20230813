@@ -8,6 +8,15 @@
         <meta name=”robots” content=”noindex” />
         <title>チャート表</title>
     </head>
+    <header>
+        <ul>
+            <li><a href=" {{route('login') }} ">ログイン</a></li>
+            @if ($user_name == 'jonio')
+                <li><a href="{{ route('fx.create') }}">値を登録する</a></li>
+                <li><a href="{{ route('fx.admin') }}">管理画面</a></li>
+            @endif
+        </ul>
+    </header>
     <body>
         <div class="chart-container">
             <h1>ドル円のチャート表</h1>
@@ -73,8 +82,6 @@
                     }
                 });
             </script>
-            <a href="{{ route('fx.create') }}" class="create">値を登録する</a>
-            <a href="{{ route('fx.admin') }}" class="admin">管理画面</a>
         </div>
     </body>
 </html>
