@@ -1,13 +1,12 @@
 .chart-container {
-  width: 100vw;
   margin-left: auto;
   margin-right: auto;
   padding: 20px;
+  overflow-x: auto;
 }
 @media screen and (min-width: 768px) {
   .chart-container {
     padding: 20px;
-    height: 600px;
   }
 }
 .chart-container .create, .chart-container .admin {
@@ -25,6 +24,10 @@
 .chart-container .create:hover, .chart-container .admin:hover {
   opacity: 0.5;
   transition-duration: 0.3s;
+}
+.chart-container .chart-wrapper {
+  width: 2000px;
+  height: 500px;
 }
 
 h1 {
