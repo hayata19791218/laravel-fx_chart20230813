@@ -18,14 +18,18 @@ Route::fallback(function () {
 });
 
 
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/login'); // ログインページに戻す
+})->name('logout');
+
 Route::controller(ChartController::class)->group(function(){
     Route::get('/', 'index');
     Route::get('/create', 'create')->name('fx.create');
     Route::post('/store', 'store')->name('store');
     Route::get('/admin', 'admin')->name('fx.admin');
-    Route::get('/admin/edit/{id}', 'edit')->name('fx.edit');
-    Route::put('/admin/update/{value}', 'update')->name('fx.update');
-    Route::delete('/adimin/delete/{value}', 'delete')->name('fx.delete');
 });
 
 require __DIR__.'/auth.php';
