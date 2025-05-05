@@ -14,6 +14,18 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+Route::controller(ChartController::class)->group(function(){
+    Route::put('/admin/update/{value}', 'update')->name('fx.update');
+    Route::get('/api/existing-dates', function () {
+        return Value::pluck('date')->toArray();
+    });
+    Route::get('/admin/value-data', 'list');
+    Route::get('/edit-value/{id}', 'getEditValue')->name('api.value.edit');
+    Route::delete('/admin/delete/{value}', 'delete')->name('fx.delete');
+    Route::get('/admin/edit/{id}', 'edit')->name('fx.edit');
+});
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
