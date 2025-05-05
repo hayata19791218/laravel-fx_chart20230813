@@ -1,11 +1,9 @@
 <template>
-    <div class="chart-wrapper h-[500px]">
-        <canvas ref="chartCanvas" :width="chartWidth"></canvas>
-    </div>
+    <canvas ref="chartCanvas" :width="chartWidth" height="500"></canvas>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref,nextTick } from 'vue';
 import {
     Chart,
     LineController,
@@ -29,11 +27,10 @@ const props = defineProps({
 });
 
 const chartCanvas = ref(null);
-const chartWidth = ref(800);
+const chartWidth = ref(0);
 
-onMounted(() => {
-    chartWidth.value = props.chartData.dates.length * 80;
-    
+onMounted(async () => {
+    chartWidth.value = Math.min(props.chartData.dates.length * 80, 7100);
     Chart.register(
         LineController,
         LineElement,
@@ -45,7 +42,17 @@ onMounted(() => {
         Tooltip
     );
 
+    await nextTick();
+
+    if (!chartCanvas.value) {
+    console.error('canvas がまだ描画されていません');
+    return;
+    }
     const ctx = chartCanvas.value.getContext('2d');
+    if (!ctx) {
+    console.error('2D context が取得できません');
+    return;
+    }
 
     new Chart(ctx, {
         type: 'line',
@@ -82,11 +89,12 @@ onMounted(() => {
                         }
                     },
                     ticks: {
-                        autoSkip: false,
-                        maxRotation: 90,
-                        minRotation: 45
-                    }
-                },
+                    source: 'labels', // ← ★追加
+                    autoSkip: false,
+                    maxRotation: 90,
+                    minRotation: 45
+                }
+                }
             },
             plugins: {
                 tooltip: {
