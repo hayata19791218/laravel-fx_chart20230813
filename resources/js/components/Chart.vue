@@ -45,11 +45,6 @@ onMounted(() => {
         Tooltip
     );
 
-
-
-
-
-
     const ctx = chartCanvas.value.getContext('2d');
 
     new Chart(ctx, {
@@ -86,6 +81,11 @@ onMounted(() => {
                             day: 'yyyy/MM/dd'
                         }
                     }
+                },
+                ticks: {
+                    autoSkip: false,
+                    maxRotation: 90,
+                    minRotation: 45
                 }
             },
             plugins: {
