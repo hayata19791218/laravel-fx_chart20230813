@@ -67,7 +67,7 @@ onMounted(() => {
             ]
         },
         options: {
-            responsive: true,
+            responsive: false,
             scales: {
                 y: {
                     max: 165,
