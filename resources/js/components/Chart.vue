@@ -1,6 +1,6 @@
 <template>
     <div class="chart-wrapper h-[500px]">
-        <canvas ref="chartCanvas" width="400" height="200"></canvas>
+        <canvas ref="chartCanvas" :width="chartWidth"></canvas>
     </div>
 </template>
 
@@ -29,8 +29,11 @@ const props = defineProps({
 });
 
 const chartCanvas = ref(null);
+const chartWidth = ref(800);
 
 onMounted(() => {
+    chartWidth.value = props.chartData.dates.length * 80;
+    
     Chart.register(
         LineController,
         LineElement,
@@ -41,6 +44,11 @@ onMounted(() => {
         TimeScale,
         Tooltip
     );
+
+
+
+
+
 
     const ctx = chartCanvas.value.getContext('2d');
 
