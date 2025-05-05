@@ -1,5 +1,12 @@
 <template>
-    <canvas ref="chartCanvas" :width="chartWidth" height="500"></canvas>
+  
+    <canvas
+      ref="chartCanvas"
+      :width="chartWidth"
+      height="500"
+      :style="`width: ${chartWidth}px; border: 1px solid red`"
+    ></canvas>
+
 </template>
 
 <script setup>
@@ -27,10 +34,10 @@ const props = defineProps({
 });
 
 const chartCanvas = ref(null);
-const chartWidth = ref(0);
+const chartWidth = ref(Math.min(props.chartData.dates.length * 80, 7000));
 
 onMounted(async () => {
-    chartWidth.value = Math.min(props.chartData.dates.length * 80, 7100);
+    // chartWidth.value = Math.min(props.chartData.dates.length * 80, 7000);
     Chart.register(
         LineController,
         LineElement,
@@ -42,6 +49,7 @@ onMounted(async () => {
         Tooltip
     );
 
+    
     await nextTick();
 
     if (!chartCanvas.value) {
@@ -53,6 +61,14 @@ onMounted(async () => {
     console.error('2D context が取得できません');
     return;
     }
+
+
+
+
+
+
+
+    // const ctx = chartCanvas.value.getContext('2d');
 
     new Chart(ctx, {
         type: 'line',
