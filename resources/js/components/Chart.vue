@@ -80,13 +80,13 @@ onMounted(() => {
                         displayFormats: {
                             day: 'yyyy/MM/dd'
                         }
+                    },
+                    ticks: {
+                        autoSkip: false,
+                        maxRotation: 90,
+                        minRotation: 45
                     }
                 },
-                ticks: {
-                    autoSkip: false,
-                    maxRotation: 90,
-                    minRotation: 45
-                }
             },
             plugins: {
                 tooltip: {
