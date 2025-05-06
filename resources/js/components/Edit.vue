@@ -104,8 +104,8 @@ const preventString = (event: InputEvent, field: keyof FormData) => {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^0-9.]/g, '');
 
-    if (value.length > 6) {
-        value = value.slice(0, 6);
+    if (value.length > 7) {
+        value = value.slice(0, 7);
     }
 
     form.value[field] = value;
