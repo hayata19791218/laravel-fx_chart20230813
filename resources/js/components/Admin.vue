@@ -28,27 +28,34 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-const editDatas = ref([]);
-const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-const message = ref('');
+interface EditData {
+    id: number;
+    date: string;
+    high_value: string;
+    row_value: string;
+}
+
+const editDatas = ref<EditData[]>([]);
+const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+const message = ref<string>('');
 
 onMounted(async () => {
-    const response = await axios.get('/api/admin/value-data');  
+    const response = await axios.get<EditData[]>('/api/admin/value-data');  
     editDatas.value = response.data;
 });
 
 // 削除
-const deleteItem = async (id) => {
+const deleteItem = async (id: number): Promise<void> => {
     const deleteConfirm = confirm('本当に削除してもいいですか?');
 
     if (!deleteConfirm) return;
     
     try {
-        const response = await axios.delete(`/api/admin/delete/${id}`, {
+        const response = await axios.delete<{ message: string }>(`/api/admin/delete/${id}`, {
             headers: {
                 'X-CSRF-TOKEN': csrf
             }
