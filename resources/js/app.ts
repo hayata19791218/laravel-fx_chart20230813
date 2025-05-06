@@ -6,7 +6,7 @@ window.Alpine = Alpine;
 
 Alpine.start();
 
-import { createApp } from 'vue/dist/vue.esm-bundler.js';
+import { createApp } from 'vue';
 import Create from './components/Create.vue';
 import Chart from './components/Chart.vue';
 import Login from './components/Login.vue';

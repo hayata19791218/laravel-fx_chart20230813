@@ -54,15 +54,19 @@
     </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
-const props = defineProps({
-    id: Number,
-    required: true
-});
-const form = ref({
+const props = defineProps<{
+    id: Number
+}>();
+interface FormData {
+    high_value: string;
+    row_value: string;
+    date: string;
+}
+const form = ref<FormData>({
     high_value: '',
     row_value: '',
     date: ''
@@ -74,7 +78,7 @@ const isChanging = ref(false);
 
 onMounted(async () => {
     try {
-        const response = await axios.get(`/api/edit-value/${props.id}`);
+        const response = await axios.get<FormData>(`/api/edit-value/${props.id}`);
 
         form.value = response.data;
     } catch (error) {
@@ -83,33 +87,33 @@ onMounted(async () => {
 });
 
 // フォームのIME入力を削除
-const handleChangingUpdate = (event, field) => {
-  let value = event.target.value;
-  value = value.replace(/[^0-9.]/g, '');
-  form.value[field] = value;
+const handleChangingUpdate = (event : CompositionEvent, field: keyof FormData) => {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/[^0-9.]/g, '');
+    form.value[field] = value;
 };
 
-const handleChangingEnd = (event, field) => {
+const handleChangingEnd = (event: CompositionEvent, field: keyof FormData) => {
   isChanging.value = false;
-  preventString(event, field);
+  preventString(event as unknown as InputEvent, field);
 };
 
-const preventString = (event, field) => {
-  if (isChanging.value) return;
+const preventString = (event: InputEvent, field: keyof FormData) => {
+    if (isChanging.value) return;
 
-  let value = event.target.value;
-  value = value.replace(/[^0-9.]/g, '');
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/[^0-9.]/g, '');
 
-  if (value.length > 6) {
-    value = value.slice(0, 6);
-  }
+    if (value.length > 6) {
+        value = value.slice(0, 6);
+    }
 
-  form.value[field] = value;
+    form.value[field] = value;
 };
 
 const submitForm = async () => {
     try {
-        const response = await axios.put(`/api/admin/update/${props.id}`, form.value);
+        const response = await axios.put<{ message: string }>(`/api/admin/update/${props.id}`, form.value);
         message.value = response.data.message;
 
         setTimeout(() => {

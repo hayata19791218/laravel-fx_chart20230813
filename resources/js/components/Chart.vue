@@ -4,12 +4,11 @@
       ref="chartCanvas"
       :width="chartWidth"
       height="500"
-      :style="`width: ${chartWidth}px; border: 1px solid red`"
     ></canvas>
 
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref,nextTick } from 'vue';
 import {
     Chart,
@@ -26,15 +25,18 @@ import 'chartjs-adapter-date-fns';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
-const props = defineProps({
-    chartData: {
-        type: Object,
-        required: true
-    }
-});
+interface ChartData {
+    dates: string[];
+    values: number[];
+    values2: number[];
+}
 
-const chartCanvas = ref(null);
-const chartWidth = ref(Math.min(props.chartData.dates.length * 80, 7000));
+const props = defineProps<{
+    chartData: ChartData;
+}>();
+
+const chartCanvas = ref<HTMLCanvasElement | null>(null);
+const chartWidth = ref<number>(Math.min(props.chartData.dates.length * 80, 7000));
 
 onMounted(async () => {
     // chartWidth.value = Math.min(props.chartData.dates.length * 80, 7000);
@@ -105,7 +107,7 @@ onMounted(async () => {
                         }
                     },
                     ticks: {
-                    source: 'labels', // ← ★追加
+                    source: 'labels',
                     autoSkip: false,
                     maxRotation: 90,
                     minRotation: 45
