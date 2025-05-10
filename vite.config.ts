@@ -18,8 +18,11 @@ export default defineConfig({
         },
     },
     server: {
-        proxy: {
-          '/api': 'http://localhost', // Laravel API のエンドポイントに合わせて変更
+        host: '0.0.0.0',
+        port: 5173,
+        hmr: {
+            host: 'localhost',
+            protocol: 'ws',
         },
     },
 });
