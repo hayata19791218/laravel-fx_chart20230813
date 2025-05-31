@@ -132,4 +132,19 @@ class ChartController extends Controller
             'message' => '削除しました'
         ]);
     }
+
+    /**
+     * 単純移動平均線の値をテンプレートに渡す
+    */
+    public function getSma(Request $request)
+    {
+        $days = (int) $request->input('days');
+        
+        $sma = Value::calculateSmaSeries($days);
+
+        return response()->json([
+            'days' => $days,
+            'sma' => $sma
+        ]);
+    }
 }

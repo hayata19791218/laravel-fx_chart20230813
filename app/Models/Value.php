@@ -15,7 +15,8 @@ class Value extends Model
         'row_value',
         'high_value_memo',
         'row_value_memo',
-        'date'
+        'date',
+        'close_value',
     ];
 
     /**
@@ -106,5 +107,29 @@ class Value extends Model
         }
     
         return  $validatedData['type'] === 'high' ? $value->high_value_memo : $value->row_value_memo;
+    }
+
+    /**
+     * 単純移動平均線の値を取得
+    */
+    public static function calculateSmaSeries($days)
+    {
+        $values = Value::orderBy('date')
+                       ->pluck('close_value')
+                       ->toArray();
+
+        $sma = [];
+
+        for ($i = 0; $i < count($values); $i ++) {
+            if ($i < $days - 1) {
+                $sma[] = null;
+            } else {
+                $numericValues = array_map('floatval', $values);
+                $sum = array_sum(array_slice($values, $i - $days + 1, $days));
+                $sma[] = round($sum / $days, 3);
+            }
+        }
+
+        return $sma;
     }
 }

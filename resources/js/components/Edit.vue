@@ -73,7 +73,7 @@ const form = ref<FormData>({
 });
 const errors = ref({});
 const message = ref('');
-const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement).getAttribute('content');
 const isChanging = ref(false);
 
 onMounted(async () => {

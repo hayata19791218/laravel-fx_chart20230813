@@ -1,10 +1,23 @@
 <template>
+    <div class="my-4 flex items-center gap-4">
+        <label for="smaDays">SMA日数:</label>
+        <div class="flex gap-x-1 items-center">
+            <input
+                id="smaDays"
+                type="number"
+                v-model.number="selectedDays"
+                @change="fetchSma"
+                class="border p-1 rounded w-[60px]"
+                min="1"
+            />
+            <div>日</div>
+        </div>
+    </div>
     <canvas
       ref="chartCanvas"
       :width="chartWidth"
       height="500"
     ></canvas>
-
     <div 
         v-if="showModal" 
         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
@@ -70,6 +83,50 @@ const memoText = ref('');
 const highMemos = ref<Record<string, string>>({ ...props.chartData.highMemos });
 const rowMemos = ref<Record<string, string>>({ ...props.chartData.rowMemos });
 const selectedType = ref<'high' | 'row'>('high');
+const selectedDays = ref(3);
+
+let chartInstance: Chart | null = null;
+
+const updateSmaLine = (smaData: number[]) => {
+    if (!chartInstance) return;
+
+    const smaDatasetIndex = chartInstance.data.datasets.findIndex(ds => ds.label === 'SMA');
+
+
+    const smaPoints = props.chartData.dates.map((date, i) => ({
+        x: date,
+        y: smaData[i] ?? null
+    }));
+
+    if (smaDatasetIndex !== -1) {
+        // すでに存在する場合は更新
+        chartInstance.data.datasets[smaDatasetIndex].data = smaData;
+    } else {
+        // 存在しない場合は追加
+        chartInstance.data.datasets.push({
+            label: 'SMA',
+            data: smaPoints,
+            borderColor: 'purple',
+            pointStyle: 'circle',
+            showLine: true,
+            type: 'line',
+        });
+    }
+
+    chartInstance.update();
+};
+
+const fetchSma = async () => {
+    try {
+        const res = await axios.get('/api/sma', {
+            params: { days: selectedDays.value }
+        });
+
+        updateSmaLine(res.data.sma);
+    } catch (e) {
+        console.error('SMA取得失敗', e);
+    }
+};
 
 const openModal = async (date: string, type: 'high' | 'row') => {
     if (!props.isLoggedIn) {
@@ -156,6 +213,10 @@ onMounted(async () => {
         return;
     }
 
+    fetchSma();
+
+
+chartInstance =
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -191,11 +252,11 @@ onMounted(async () => {
                         }
                     },
                     ticks: {
-                    source: 'labels',
-                    autoSkip: false,
-                    maxRotation: 90,
-                    minRotation: 45
-                }
+                        source: 'labels',
+                        autoSkip: false,
+                        maxRotation: 90,
+                        minRotation: 45
+                    }
                 }
             },
             plugins: {
