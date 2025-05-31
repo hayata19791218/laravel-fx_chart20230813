@@ -61,7 +61,6 @@ class ChartController extends Controller
         return view('fx.admin',compact('editDatas'));
     }
 
-
     public function list(Value $value, Request $request)
     {
         $editDatas = $value->valueAdmin($request);
@@ -69,9 +68,12 @@ class ChartController extends Controller
         return response()->json($editDatas);
     }
 
+    public function saveMemo(Request $request, Value $value)
+    {
+        $value->memoValueStore($request);
 
-
-
+        return response()->json(['message' => 'メモが保存されました']);
+    }
 
     /**
     * 値の編集ページ
@@ -79,13 +81,7 @@ class ChartController extends Controller
     public function edit($id){
         $valueEdit = Value::find($id);
 
-// dd($id);
-
-
         return view('fx.edit', compact('valueEdit', 'id'));
-
-
-        // return response()->json($valueEdit);
     }
 
     /**
@@ -101,12 +97,6 @@ class ChartController extends Controller
         ]);
     }
 
-
-
-
-
-
-
      /**
      * Vue用 - 値データの取得
      */
@@ -121,13 +111,15 @@ class ChartController extends Controller
         return response()->json($valueEdit);
     }
 
+    /**
+     * メモのデータを取得
+    */
+    public function getMemo(Request $request, Value $value)
+    {
+        $memo = $value->getMemoData($request);
 
-
-
-
-
-
-
+        return response()->json(['memo' => $memo ?? ''], 200);
+    }
 
     /**
     * 値の削除
@@ -135,11 +127,24 @@ class ChartController extends Controller
     public function delete(Value $value, Request $request){
         $value->valueDelete($request);
         
-        // return redirect()->route('fx.admin')->with('message', '値を削除しました');
-
         return response()->json([
             'status' => 'success',
             'message' => '削除しました'
+        ]);
+    }
+
+    /**
+     * 単純移動平均線の値をテンプレートに渡す
+    */
+    public function getSma(Request $request)
+    {
+        $days = (int) $request->input('days');
+        
+        $sma = Value::calculateSmaSeries($days);
+
+        return response()->json([
+            'days' => $days,
+            'sma' => $sma
         ]);
     }
 }

@@ -1,4 +1,3 @@
-version: '3'
 services:
     laravel.test:
         build:
@@ -50,15 +49,33 @@ services:
     phpmyadmin:
         image: phpmyadmin/phpmyadmin
         links:
-            - mysql:mysql
+            - 'mysql:mysql'
         ports:
-            - 8080:80
+            - '8080:80'
         environment:
             MYSQL_USERNAME: '${DB_USERNAME}'
             MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
             PMA_HOST: mysql
         networks:
             - sail
+    scheduler:
+        build:
+            context: ./vendor/laravel/sail/runtimes/8.2
+            dockerfile: Dockerfile
+            args:
+                WWWGROUP: '${WWWGROUP}'
+        image: sail-8.2/app
+        container_name: scheduler
+        restart: always
+        working_dir: /var/www/html
+        volumes:
+            - .:/var/www/html
+        networks:
+            - sail
+        depends_on:
+            - laravel.test
+        entrypoint: >
+            bash -c "while true; do php artisan schedule:run >> /dev/null 2>&1; sleep 60; done"
 networks:
     sail:
         driver: bridge

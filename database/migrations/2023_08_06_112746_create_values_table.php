@@ -15,8 +15,8 @@ class CreateValuesTable extends Migration
     {
         Schema::create('values', function (Blueprint $table) {
             $table->id();
-            $table->double('high_value', 6, 3);
-            $table->double('row_value', 6, 3);
+            $table->decimal('high_value', 6, 3);
+            $table->decimal('row_value', 6, 3);
             $table->timestamps();
         });
     }
