@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('fx:fetch')->everyMinute();
+        $schedule->command('fx:fetch')->everyThreeHours();
         $schedule->command('app:aggregate-daily-fx-rates')->dailyAt('00:01');
         $schedule->command('valuelogs:clear')->dailyAt('00:02');
     }
