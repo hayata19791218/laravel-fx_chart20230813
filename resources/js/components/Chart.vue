@@ -122,7 +122,7 @@ const applyDateFilter = () => {
     const filteredHighs: number[] = [];
     const filteredRows: number[] = [];
 
-    if (start > today || end < today) {
+    if (start > today || end < start) {
         alert('正しい日付を選択してください。');
 
         startDate.value = '';
