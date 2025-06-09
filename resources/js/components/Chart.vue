@@ -13,6 +13,16 @@
             <div>日</div>
         </div>
     </div>
+    <div class="my-4 flex items-center gap-2">
+        <label>表示期間: </label>
+        <input type="date" v-model="startDate" class="border p-1 rounded" />
+        <span>〜</span>
+        <input type="date" v-model="endDate" class="border p-1 rounded" />
+        <button
+            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+            @click="applyDateFilter"
+        >適用</button>
+    </div>
     <canvas
       ref="chartCanvas"
       :width="chartWidth"
@@ -65,7 +75,7 @@ import axios from 'axios';
 interface ChartData {
     dates: string[];
     values: number[];
-    values2: number[];
+    rowVaue: number[];
     highMemos?: Record<string, string>;
     rowMemos?: Record<string, string>;
 }
@@ -84,8 +94,55 @@ const highMemos = ref<Record<string, string>>({ ...props.chartData.highMemos });
 const rowMemos = ref<Record<string, string>>({ ...props.chartData.rowMemos });
 const selectedType = ref<'high' | 'row'>('high');
 const selectedDays = ref(3);
+const startDate = ref<string>('');
+const endDate = ref<string>('');
 
 let chartInstance: Chart | null = null;
+
+
+const applyDateFilter = () => {
+    if (!chartInstance) return;
+
+    if (!startDate.value || !endDate.value) {
+        alert('開始日と終了日を入力してください。');
+
+        return;
+    }
+
+    const start = new Date(startDate.value);
+    const end = new Date(endDate.value);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+    const filteredDates: string[] = [];
+    const filteredHighs: number[] = [];
+    const filteredRows: number[] = [];
+
+    if (start > today || end < today) {
+        alert('正しい日付を選択してください。');
+
+        startDate.value = '';
+        endDate.value = '';
+
+        return;
+    }
+
+    props.chartData.dates.forEach((date, i) => {
+        const currentDate = new Date(date);
+
+        if (currentDate >= start && currentDate <= end) {
+            filteredDates.push(date);
+            filteredHighs.push(props.chartData.values[i]);
+            filteredRows.push(props.chartData.rowVaue[i]);
+        }
+    });
+
+    chartInstance.data.labels = filteredDates;
+    chartInstance.data.datasets[0].data = filteredHighs;
+    chartInstance.data.datasets[1].data = filteredRows;
+    chartInstance.update();
+}
 
 const updateSmaLine = (smaData: number[]) => {
     if (!chartInstance) return;
@@ -110,6 +167,9 @@ const updateSmaLine = (smaData: number[]) => {
             pointStyle: 'circle',
             showLine: true,
             type: 'line',
+            backgroundColor: 'purple',
+            pointRadius: 3,
+            borderWidth: 4, 
         });
     }
 
@@ -230,7 +290,7 @@ chartInstance =
                 },
                 {
                     label: '最低値',
-                    data: props.chartData.values2,
+                    data: props.chartData.rowVaue,
                     borderColor: 'blue',
                     backgroundColor: 'transparent'
                 }
