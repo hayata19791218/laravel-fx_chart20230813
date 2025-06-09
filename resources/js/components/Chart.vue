@@ -108,7 +108,7 @@ const applyDateFilter = () => {
 
         return;
     }
-
+console.log('aaa');
     const start = new Date(startDate.value);
     const end = new Date(endDate.value);
     const today = new Date();
