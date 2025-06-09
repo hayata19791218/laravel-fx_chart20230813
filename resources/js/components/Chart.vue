@@ -24,9 +24,9 @@
         >適用</button>
     </div>
     <canvas
-      ref="chartCanvas"
-      :width="chartWidth"
-      height="500"
+        ref="chartCanvas"
+        :width="chartWidth"
+        height="500"
     ></canvas>
     <div 
         v-if="showModal" 
@@ -74,8 +74,8 @@ import axios from 'axios';
 
 interface ChartData {
     dates: string[];
-    values: number[];
-    rowVaue: number[];
+    highValue: number[];
+    rowValue: number[];
     highMemos?: Record<string, string>;
     rowMemos?: Record<string, string>;
 }
@@ -106,9 +106,12 @@ const applyDateFilter = () => {
     if (!startDate.value || !endDate.value) {
         alert('開始日と終了日を入力してください。');
 
+        startDate.value = '';
+        endDate.value = '';
+
         return;
     }
-console.log('aaa');
+
     const start = new Date(startDate.value);
     const end = new Date(endDate.value);
     const today = new Date();
@@ -133,10 +136,17 @@ console.log('aaa');
 
         if (currentDate >= start && currentDate <= end) {
             filteredDates.push(date);
-            filteredHighs.push(props.chartData.values[i]);
-            filteredRows.push(props.chartData.rowVaue[i]);
+            filteredHighs.push(props.chartData.highValue[i]);
+            filteredRows.push(props.chartData.rowValue[i]);
         }
     });
+
+
+console.log('dates:', props.chartData.dates.length);
+console.log('highValue:', props.chartData.highValue.length);
+console.log('rowValue:', props.chartData.rowValue.length);
+
+
 
     chartInstance.data.labels = filteredDates;
     chartInstance.data.datasets[0].data = filteredHighs;
@@ -284,13 +294,13 @@ chartInstance =
             datasets: [
                 {
                     label: '最高値',
-                    data: props.chartData.values,
+                    data: props.chartData.highValue,
                     borderColor: 'red',
                     backgroundColor: 'transparent'
                 },
                 {
                     label: '最低値',
-                    data: props.chartData.rowVaue,
+                    data: props.chartData.rowValue,
                     borderColor: 'blue',
                     backgroundColor: 'transparent'
                 }

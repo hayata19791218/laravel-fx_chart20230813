@@ -28,8 +28,8 @@ class Value extends Model
         $rowMemos = $data->pluck('row_value_memo', 'date');
 
         $chartData = [
-            'values' => $data->pluck('high_value'),
-            'values2' => $data->pluck('row_value'),
+            'highValue' => $data->pluck('high_value'),
+            'rowValue' => $data->pluck('row_value'),
             'dates' => $data->pluck('date'),
             'highMemos' => $highMemos,
             'rowMemos' => $rowMemos,
