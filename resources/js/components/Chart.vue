@@ -1,28 +1,42 @@
 <template>
-    <div class="my-4 flex items-center gap-4">
-        <label for="smaDays">SMA日数:</label>
-        <div class="flex gap-x-1 items-center">
-            <input
-                id="smaDays"
-                type="number"
-                v-model.number="selectedDays"
-                @change="fetchSma"
-                class="border p-1 rounded w-[60px]"
-                min="1"
-            />
-            <div>日</div>
+    <div class="mb-6">
+        <div class="mb-2">[単純移動平均線(紫)]</div>
+        <div class="my-4 flex items-center gap-4">
+            <label for="smaDays">SMA日数:</label>
+            <div class="flex gap-x-1 items-center">
+                <input
+                    id="smaDays"
+                    type="number"
+                    v-model.number="selectedDays"
+                    @change="fetchSma"
+                    class="border p-1 rounded w-[60px]"
+                    min="1"
+                />
+                <div>日</div>
+            </div>
         </div>
     </div>
-    <div class="my-4 flex items-center gap-2">
-        <label>表示期間: </label>
-        <input type="date" v-model="startDate" class="border p-1 rounded" />
-        <span>〜</span>
-        <input type="date" v-model="endDate" class="border p-1 rounded" />
-        <button
-            class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-            @click="applyDateFilter"
-        >適用</button>
+    <div class="mb-6">
+        <div>[表示期間]</div>
+        <div class="my-4 flex items-center gap-2">
+            <input type="date" v-model="startDate" class="border p-1 rounded" />
+            <span>〜</span>
+            <input type="date" v-model="endDate" class="border p-1 rounded" />
+            <button
+                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                @click="applyDateFilter"
+            >適用</button>
+        </div>
     </div>
+    <div>
+        <div class="mb-2">[トレンドライン]</div>
+        <div class="flex items-center gap-4 mb-6">
+            <div>高値トレンド : オレンジ</div>
+            <div>安値トレンド : グリーン</div>
+            <div>中心軸トレンド : グレイ</div>
+        </div>
+    </div>
+
     <canvas
         ref="chartCanvas"
         :width="chartWidth"
@@ -100,6 +114,24 @@ const endDate = ref<string>('');
 let chartInstance: Chart | null = null;
 
 
+// トレンドライン
+const linearTrendLine = (x: string[], y: number[]) => {
+    const n = y.length;
+    const xNums = x.map(date => new Date(date).getTime());
+    // const xNums = x.map((_, i) => i);
+    const avgX = xNums.reduce((a, b) => a + b, 0) / n;
+    const avgY = y.reduce((a, b) => a + b, 0) / n;
+    const numerator = xNums.reduce((sum, xi, i) => sum + (xi - avgX) * (y[i] - avgY), 0);
+    const denominator = xNums.reduce((sum, xi) => sum + (xi - avgX) ** 2, 0);
+    const slope = numerator / denominator;
+    const intercept = avgY - slope * avgX;   // 直線の傾き
+    const trendLine = xNums.map(xi => slope * xi + intercept);   // y = ax + b
+    // const trendLine = xNums.map(i => slope * i + intercept);   // y = ax + b
+
+    return trendLine;
+}
+
+
 const applyDateFilter = () => {
     if (!chartInstance) return;
 
@@ -136,21 +168,27 @@ const applyDateFilter = () => {
 
         if (currentDate >= start && currentDate <= end) {
             filteredDates.push(date);
-            filteredHighs.push(props.chartData.highValue[i]);
-            filteredRows.push(props.chartData.rowValue[i]);
+            filteredHighs.push(Number(props.chartData.highValue[i]));
+            filteredRows.push(Number(props.chartData.rowValue[i]));
+            // filteredHighs.push(props.chartData.highValue[i]);
+            // filteredRows.push(props.chartData.rowValue[i]);
         }
     });
 
-
-console.log('dates:', props.chartData.dates.length);
-console.log('highValue:', props.chartData.highValue.length);
-console.log('rowValue:', props.chartData.rowValue.length);
-
-
+    const filteredMiddles = filteredHighs.map((v, i) => (v + filteredRows[i]) / 2);
+    const highTrend = linearTrendLine(filteredDates, filteredHighs);
+    const rowTrend = linearTrendLine(filteredDates, filteredRows);
+    const middleTrend = linearTrendLine(filteredDates, filteredMiddles);
 
     chartInstance.data.labels = filteredDates;
     chartInstance.data.datasets[0].data = filteredHighs;
     chartInstance.data.datasets[1].data = filteredRows;
+
+
+
+    chartInstance.data.datasets[2].data = highTrend.map((y, i) => ({ x: filteredDates[i], y }));
+    chartInstance.data.datasets[3].data = rowTrend.map((y, i) => ({ x: filteredDates[i], y }));
+    chartInstance.data.datasets[4].data = middleTrend.map((y, i) => ({ x: filteredDates[i], y }));
     chartInstance.update();
 }
 
@@ -285,9 +323,15 @@ onMounted(async () => {
 
     fetchSma();
 
+    const dates = props.chartData.dates;
+    const highs = props.chartData.highValue.map(Number);
+    const rows = props.chartData.rowValue.map(Number);
+    const middles = highs.map((val, i) => (val + rows[i]) / 2);
+    const highTrend = linearTrendLine(dates, highs);
+    const rowTrend = linearTrendLine(dates, rows);
+    const middleTrend = linearTrendLine(dates, middles);
 
-chartInstance =
-    new Chart(ctx, {
+    chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: props.chartData.dates,
@@ -303,7 +347,35 @@ chartInstance =
                     data: props.chartData.rowValue,
                     borderColor: 'blue',
                     backgroundColor: 'transparent'
-                }
+                },
+                {
+                    label: 'レジスタンス(高値傾向)',
+                    type: 'line',
+                    data: highTrend.map((y, i) => ({ x:dates[i], y })),
+                    borderColor: 'orange',
+                    borderDash: [4, 4],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill:false 
+                },
+                {
+                    label: 'サポート（安値傾向）',
+                    data: rowTrend.map((y, i) => ({ x: dates[i], y })),
+                    borderColor: 'green',
+                    borderDash: [4, 4],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false
+                },
+                {
+                    label: '中心軸トレンド',
+                    data: middleTrend.map((y, i) => ({ x: dates[i], y })),
+                    borderColor: 'gray',
+                    borderDash: [2, 6],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: false
+                }                
             ]
         },
         options: {
