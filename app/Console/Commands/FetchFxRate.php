@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\ValueLog;
 
@@ -28,31 +27,45 @@ class FetchFxRate extends Command
      */
     public function handle()
     {
-        $accessKey = 'fON2piTdHwscP1ACdBsQxvHZMGdojpZm';
+        try {
+            $accessKey = 'fON2piTdHwscP1ACdBsQxvHZMGdojpZm';
+            $url = 'https://api.apilayer.com/exchangerates_data/latest?base=USD&symbols=JPY';
 
-        $response = Http::withHeaders([
-            'apikey' => $accessKey
-        ])->get('https://api.apilayer.com/exchangerates_data/latest', [
-            'base' => 'USD',
-            'symbols' => 'JPY',
-        ]);
-
-        $data = $response->json();
-
-        $jpyRate = $data['rates']['JPY'] ?? null;
-
-        if ($jpyRate) {
-            $usdToJpy = $jpyRate;
-            ValueLog::create([
-                'rate' => $usdToJpy,
-                'fetched_at' => now(),
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'GET',
+                    'header' => "apikey: {$accessKey}\r\n",
+                    'timeout' => 10,
+                ],
+                'ssl' => [
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
+                ]
             ]);
 
-            $this->info("保存完了: 1 USD/JPY = {$usdToJpy}");
+            $response = @file_get_contents($url, false, $context);
 
-            \Log::info('fx:fetch 実行されました');
-        } else {
-            $this->error("為替レートの取得に失敗しました。");
+            if ($response === false) {
+                $error = error_get_last();
+                throw new \Exception("APIリクエストに失敗しました（file_get_contents）: " . $error['message']);
+            }
+
+            $data = json_decode($response, true);
+            $jpyRate = $data['rates']['JPY'] ?? null;
+
+            if ($jpyRate) {
+                ValueLog::create([
+                    'rate' => $jpyRate,
+                    'fetched_at' => now(),
+                ]);
+
+                $this->info("保存完了: 1 USD/JPY = {$jpyRate}");
+                Log::info('fx:fetch 成功: 1 USD = ' . $jpyRate . ' JPY');
+            } else {
+                Log::warning('fx:fetch 失敗: JPYレートが取得できませんでした');
+            }
+        } catch (\Throwable $e) {
+            Log::error('[fx:fetch] 通信エラー: ' . $e->getMessage());
         }
     }
 }
