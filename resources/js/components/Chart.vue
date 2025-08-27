@@ -1,39 +1,72 @@
 <template>
-    <div class="mb-6">
-        <div class="mb-2">[単純移動平均線(紫)]</div>
-        <div class="my-4 flex items-center gap-4">
-            <label for="smaDays">SMA日数:</label>
-            <div class="flex gap-x-1 items-center">
-                <input
-                    id="smaDays"
-                    type="number"
-                    v-model.number="selectedDays"
-                    @change="fetchSma"
-                    class="border p-1 rounded w-[60px]"
-                    min="1"
-                />
-                <div>日</div>
+    <div class="mb-6 value-wrap">
+        <div>
+            <div class="mb-2">[SMA日数]</div>
+            <div class="my-4 flex items-center gap-4">
+                <div class="flex gap-x-1 items-center">
+                    <input
+                        id="smaDays"
+                        type="number"
+                        v-model="selectSmaDays"
+                        @change="fetchSma"
+                        class="border p-1 rounded w-[60px]"
+                        min="1"
+                    />
+                    <div>日</div>
+                    <div class="purple"></div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="mb-6">
-        <div>[表示期間]</div>
-        <div class="my-4 flex items-center gap-2">
-            <input type="date" v-model="startDate" class="border p-1 rounded" />
-            <span>〜</span>
-            <input type="date" v-model="endDate" class="border p-1 rounded" />
-            <button
-                class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                @click="applyDateFilter"
-            >適用</button>
+        <div>
+            <div>[表示期間]</div>
+            <div class="my-4 flex items-center gap-2">
+                <input 
+                    type="date" 
+                    v-model="startDate" 
+                    class="border p-1 rounded" 
+                />
+                <span>〜</span>
+                <input 
+                    type="date" 
+                    v-model="endDate" 
+                    class="border p-1 rounded" 
+                />
+                <button
+                    class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    @click="displayDateChange"
+                >適用</button>
+            </div>
         </div>
+
+        <div class="mb-6">
+            <div>[Y軸の範囲]</div>
+            <div class="my-4 flex items-center gap-2">
+                <label class="text-sm">最大:</label>
+                <input 
+                    type="number" 
+                    v-model.number="yAxisMax" 
+                    class="border p-1 rounded w-[90px]" 
+                />
+                <label class="text-sm">最小:</label>
+                <input 
+                    type="number" 
+                    v-model.number="yAxisMin" 
+                    class="border p-1 rounded w-[90px]" 
+                />
+                <button
+                    class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+                    @click="yAxisDisplayValueChange"
+                >適用</button>
+            </div>
+        </div>
+
     </div>
     <div>
         <div class="mb-2">[トレンドライン]</div>
         <div class="flex items-center gap-4 mb-6">
-            <div>高値トレンド : オレンジ</div>
-            <div>安値トレンド : グリーン</div>
-            <div>中心軸トレンド : グレイ</div>
+            <div>高値<span class="orange"></span></div>
+            <div>安値<span class="green"></span></div>
+            <div>中間<span class="gray"></span></div>
         </div>
     </div>
 
@@ -43,7 +76,7 @@
         height="500"
     ></canvas>
     <div 
-        v-if="showModal" 
+        v-if="momoModalFlg" 
         class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
         @click.self="closeModal"
     >
@@ -76,11 +109,9 @@ import {
     LineElement,
     PointElement,
     LinearScale,
-    Title,
-    CategoryScale,
     TimeScale,
     Tooltip
-} from 'chart.js';
+} from 'chart.js'
 import 'chartjs-adapter-date-fns';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -99,20 +130,21 @@ const props = defineProps<{
     isLoggedIn: boolean;
 }>();
 
-const chartCanvas = ref<HTMLCanvasElement | null>(null);
-const chartWidth = ref<number>(Math.min(props.chartData.dates.length * 80, 7000));
-const showModal = ref(false);
-const selectedDate = ref('');
-const memoText = ref('');
-const highMemos = ref<Record<string, string>>({ ...props.chartData.highMemos });
-const rowMemos = ref<Record<string, string>>({ ...props.chartData.rowMemos });
-const selectedType = ref<'high' | 'row'>('high');
-const selectedDays = ref(3);
-const startDate = ref<string>('');
-const endDate = ref<string>('');
+const chartCanvas = ref<HTMLCanvasElement | null>(null)
+const chartWidth = ref<number>(Math.min(props.chartData.dates.length * 80, 7000))
+const momoModalFlg = ref(false)
+const selectedDate = ref('')
+const memoText = ref('')
+const highMemos = ref<Record<string, string>>({ ...props.chartData.highMemos })
+const rowMemos = ref<Record<string, string>>({ ...props.chartData.rowMemos })
+const selectedType = ref<'high' | 'row'>('high')
+const selectSmaDays = ref(21)
+const startDate = ref<string>('')
+const endDate = ref<string>('')
+const yAxisMax = ref<number>(153)
+const yAxisMin = ref<number>(140)
 
-let chartInstance: Chart | null = null;
-
+let chartInstance: Chart<"line", { x:number | string; y: number | null }[]> | null = null;
 
 // トレンドライン
 const linearTrendLine = (x: string[], y: number[]) => {
@@ -131,36 +163,60 @@ const linearTrendLine = (x: string[], y: number[]) => {
     return trendLine;
 }
 
+const yAxisDisplayValueChange = () => {
+    if (!chartInstance) return
 
-const applyDateFilter = () => {
-    if (!chartInstance) return;
+    const max = yAxisMax.value
+    const min = yAxisMin.value
+
+    if(min == null || max == null || Number.isNaN(min) || Number.isNaN(max) || min >= max) {
+        alert('正しい値を入力してください')
+
+        return
+    }
+
+    const y = chartInstance.options.scales?.y
+
+    if (y) {
+        y.max = max
+        y.min = min
+    }
+
+    chartInstance.update('active')
+}
+
+
+const displayDateChange = () => {
+    if (!chartInstance) return
 
     if (!startDate.value || !endDate.value) {
-        alert('開始日と終了日を入力してください。');
+        alert('開始日と終了日を入力してください。')
 
-        startDate.value = '';
-        endDate.value = '';
+        startDate.value = ''
+        endDate.value = ''
 
         return;
     }
 
-    const start = new Date(startDate.value);
-    const end = new Date(endDate.value);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    start.setHours(0, 0, 0, 0);
-    end.setHours(0, 0, 0, 0);
-    const filteredDates: string[] = [];
-    const filteredHighs: number[] = [];
-    const filteredRows: number[] = [];
+    const start = new Date(startDate.value)
+    const end = new Date(endDate.value)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    start.setHours(0, 0, 0, 0)
+    end.setHours(0, 0, 0, 0)
+    const filteredDates: string[] = []
+    const filteredHighs: number[] = []
+    const filteredRows: number[] = []
+    type XY = { x: string; y: number | null }
+    const toXY = (dates: string[], ys: number[]): XY[] => dates.map((d, i) => ( { x: d, y: ys[i] ?? null }))
 
     if (start > today || end < start) {
-        alert('正しい日付を選択してください。');
+        alert('正しい日付を選択してください。')
 
-        startDate.value = '';
-        endDate.value = '';
+        startDate.value = ''
+        endDate.value = ''
 
-        return;
+        return
     }
 
     props.chartData.dates.forEach((date, i) => {
@@ -168,46 +224,40 @@ const applyDateFilter = () => {
 
         if (currentDate >= start && currentDate <= end) {
             filteredDates.push(date);
-            filteredHighs.push(Number(props.chartData.highValue[i]));
-            filteredRows.push(Number(props.chartData.rowValue[i]));
-            // filteredHighs.push(props.chartData.highValue[i]);
-            // filteredRows.push(props.chartData.rowValue[i]);
+            filteredHighs.push(Number(props.chartData.highValue[i]))
+            filteredRows.push(Number(props.chartData.rowValue[i]))
         }
-    });
+    })
 
-    const filteredMiddles = filteredHighs.map((v, i) => (v + filteredRows[i]) / 2);
-    const highTrend = linearTrendLine(filteredDates, filteredHighs);
-    const rowTrend = linearTrendLine(filteredDates, filteredRows);
-    const middleTrend = linearTrendLine(filteredDates, filteredMiddles);
+    const filteredMiddles = filteredHighs.map((v, i) => (v + filteredRows[i]) / 2)
+    const highTrend = linearTrendLine(filteredDates, filteredHighs)
+    const rowTrend = linearTrendLine(filteredDates, filteredRows)
+    const middleTrend = linearTrendLine(filteredDates, filteredMiddles)
 
-    chartInstance.data.labels = filteredDates;
-    chartInstance.data.datasets[0].data = filteredHighs;
-    chartInstance.data.datasets[1].data = filteredRows;
-
-
-
-    chartInstance.data.datasets[2].data = highTrend.map((y, i) => ({ x: filteredDates[i], y }));
-    chartInstance.data.datasets[3].data = rowTrend.map((y, i) => ({ x: filteredDates[i], y }));
-    chartInstance.data.datasets[4].data = middleTrend.map((y, i) => ({ x: filteredDates[i], y }));
-    chartInstance.update();
+    chartInstance.data.labels = filteredDates
+    chartInstance.data.datasets[0].data = toXY(filteredDates, filteredHighs)
+    chartInstance.data.datasets[1].data = toXY(filteredDates, filteredRows)
+    chartInstance.data.datasets[2].data = highTrend.map((y, i) => ({ x: filteredDates[i], y }))
+    chartInstance.data.datasets[3].data = rowTrend.map((y, i) => ({ x: filteredDates[i], y }))
+    chartInstance.data.datasets[4].data = middleTrend.map((y, i) => ({ x: filteredDates[i], y }))
+    chartInstance.update()
 }
 
+// smaを更新する
 const updateSmaLine = (smaData: number[]) => {
     if (!chartInstance) return;
-
-    const smaDatasetIndex = chartInstance.data.datasets.findIndex(ds => ds.label === 'SMA');
-
 
     const smaPoints = props.chartData.dates.map((date, i) => ({
         x: date,
         y: smaData[i] ?? null
     }));
 
-    if (smaDatasetIndex !== -1) {
-        // すでに存在する場合は更新
-        chartInstance.data.datasets[smaDatasetIndex].data = smaData;
+    const idx = chartInstance.data.datasets.findIndex(ds => ds.label === 'SMA');
+
+    if (idx !== -1) {
+        chartInstance.data.datasets[idx].data = smaPoints;
     } else {
-        // 存在しない場合は追加
+        // 存在しない場合はSMAを追加、初期表示用
         chartInstance.data.datasets.push({
             label: 'SMA',
             data: smaPoints,
@@ -221,13 +271,14 @@ const updateSmaLine = (smaData: number[]) => {
         });
     }
 
+    // チャートの描画
     chartInstance.update();
 };
 
 const fetchSma = async () => {
     try {
         const res = await axios.get('/api/sma', {
-            params: { days: selectedDays.value }
+            params: { days: selectSmaDays.value }
         });
 
         updateSmaLine(res.data.sma);
@@ -236,15 +287,16 @@ const fetchSma = async () => {
     }
 };
 
-const openModal = async (date: string, type: 'high' | 'row') => {
+// メモを入力するモーダル
+const openMemoModal = async (date: string, type: 'high' | 'row') => {
     if (!props.isLoggedIn) {
-        alert('ログインしてください');
+        alert('ログインしてください')
 
-        return;
+        return
     }
 
-    selectedDate.value = date;
-    selectedType.value = type;
+    selectedDate.value = date
+    selectedType.value = type
 
     try {
         const response = await axios.get(`/api/get-memo`, {
@@ -258,78 +310,78 @@ const openModal = async (date: string, type: 'high' | 'row') => {
         return;
     }
 
-    showModal.value = true;
+    momoModalFlg.value = true;
 };
 
 const closeModal = () => {
-  showModal.value = false;
+  momoModalFlg.value = false;
 }
 
 const saveMemo = async () => {
     try {
 
         // メモを新規登録か更新かのチェック
-        const memoUpdateCheck = selectedType.value === 'high' ? !!highMemos.value[selectedDate.value] : !!rowMemos.value[selectedDate.value];
+        const memoUpdateCheck = selectedType.value === 'high' ? !!highMemos.value[selectedDate.value] : !!rowMemos.value[selectedDate.value]
 
         await axios.post('/api/save-memo', {
             date: selectedDate.value,
             type: selectedType.value,
             memo: memoText.value,
-        });
+        })
 
         if (selectedType.value === 'high') {
-            highMemos.value[selectedDate.value] = memoText.value;
+            highMemos.value[selectedDate.value] = memoText.value
         } else {
-            rowMemos.value[selectedDate.value] = memoText.value;
+            rowMemos.value[selectedDate.value] = memoText.value
         }
 
-        showModal.value = false;
+        momoModalFlg.value = false
 
-        alert(memoUpdateCheck ? 'メモを更新しました' : 'メモを保存しました');
+        alert(memoUpdateCheck ? 'メモを更新しました' : 'メモを保存しました')
     } catch (error) {
-        console.error('メモの保存に失敗しました', error);
+        console.error('メモの保存に失敗しました', error)
 
-        alert('メモの保存に失敗しました');
+        alert('メモの保存に失敗しました')
     }
 }
 
 onMounted(async () => {
     Chart.register(
-        LineController,
-        LineElement,
-        PointElement,
-        LinearScale,
-        Title,
-        CategoryScale,
-        TimeScale,
+        LineController,  // 折れ線グラフを表示
+        LineElement,     // 折れ線グラフを表示
+        PointElement,    // 最高値・最低値の点
+        LinearScale,     // y軸
+        TimeScale,       // x軸
         Tooltip
-    );
+    )
 
-    await nextTick();
+    await nextTick()
 
     if (!chartCanvas.value) {
         console.error('canvas がまだ描画されていません');
 
-        return;
+        return
     }
 
-    const ctx = chartCanvas.value.getContext('2d');
+    const ctx = chartCanvas.value.getContext('2d')
     
     if (!ctx) {
-        console.error('2D context が取得できません');
+        console.error('2D context が取得できません')
 
-        return;
+        return
     }
 
-    fetchSma();
+    fetchSma()
 
-    const dates = props.chartData.dates;
-    const highs = props.chartData.highValue.map(Number);
-    const rows = props.chartData.rowValue.map(Number);
-    const middles = highs.map((val, i) => (val + rows[i]) / 2);
-    const highTrend = linearTrendLine(dates, highs);
-    const rowTrend = linearTrendLine(dates, rows);
-    const middleTrend = linearTrendLine(dates, middles);
+    const dates = props.chartData.dates
+    const highs = props.chartData.highValue.map(Number)
+    const rows = props.chartData.rowValue.map(Number)
+    const middles = highs.map((val, i) => (val + rows[i]) / 2)
+    const highTrend = linearTrendLine(dates, highs)
+    const rowTrend = linearTrendLine(dates, rows)
+    const middleTrend = linearTrendLine(dates, middles)
+    const highsXY = props.chartData.dates.map((d, i) => ({ x: d, y: Number(props.chartData.highValue[i]) }))
+    const rowsXY  = props.chartData.dates.map((d, i) => ({ x: d, y: Number(props.chartData.rowValue[i]) }))
 
     chartInstance = new Chart(ctx, {
         type: 'line',
@@ -338,13 +390,13 @@ onMounted(async () => {
             datasets: [
                 {
                     label: '最高値',
-                    data: props.chartData.highValue,
+                    data: highsXY,
                     borderColor: 'red',
                     backgroundColor: 'transparent'
                 },
                 {
                     label: '最低値',
-                    data: props.chartData.rowValue,
+                    data: rowsXY,
                     borderColor: 'blue',
                     backgroundColor: 'transparent'
                 },
@@ -353,7 +405,7 @@ onMounted(async () => {
                     type: 'line',
                     data: highTrend.map((y, i) => ({ x:dates[i], y })),
                     borderColor: 'orange',
-                    borderDash: [4, 4],
+                    // borderDash: [4, 4],
                     borderWidth: 2,
                     pointRadius: 0,
                     fill:false 
@@ -362,7 +414,7 @@ onMounted(async () => {
                     label: 'サポート（安値傾向）',
                     data: rowTrend.map((y, i) => ({ x: dates[i], y })),
                     borderColor: 'green',
-                    borderDash: [4, 4],
+                    // borderDash: [4, 4],
                     borderWidth: 2,
                     pointRadius: 0,
                     fill: false
@@ -371,7 +423,7 @@ onMounted(async () => {
                     label: '中心軸トレンド',
                     data: middleTrend.map((y, i) => ({ x: dates[i], y })),
                     borderColor: 'gray',
-                    borderDash: [2, 6],
+                    // borderDash: [2, 6],
                     borderWidth: 2,
                     pointRadius: 0,
                     fill: false
@@ -382,7 +434,7 @@ onMounted(async () => {
             responsive: false,
             scales: {
                 y: {
-                    max: 165,
+                    max: 153,
                     min: 140
                 },
                 x: {
@@ -407,38 +459,42 @@ onMounted(async () => {
                         title: function (tooltipItems) {
                             const date = tooltipItems[0].parsed.x;
 
-                            return format(new Date(date), "yyyy年M月d日", { locale: ja });
+                            return format(new Date(date), "yyyy年M月d日", { locale: ja })
                         },
                         afterBody: function (tooltipItems) {
                             const point = tooltipItems[0];
-                            const date = format(new Date(point.parsed.x), "yyyy-MM-dd");
-                            const datasetIndex = point.datasetIndex;
+                            const date = format(new Date(point.parsed.x), "yyyy-MM-dd")
+                            const datasetIndex = point.datasetIndex
 
                             if (datasetIndex === 0) {
                                 // 最高値の場合
-                                const highMemo = highMemos.value[date];
+                                const highMemo = highMemos.value[date]
 
-                                return [`最高値メモ: ${highMemo || 'なし'}`];
+                                return [`最高値メモ: ${highMemo || 'なし'}`]
                             } else if (datasetIndex === 1) {
                                 // 最低値の場合
-                                const rowMemo = rowMemos.value[date];
+                                const rowMemo = rowMemos.value[date]
 
-                                return [`最低値メモ: ${rowMemo || 'なし'}`];
+                                return [`最低値メモ: ${rowMemo || 'なし'}`]
                             }
                         }
                     },
                     external: (context) => {
-                        const tooltipModel = context.tooltip;
-                        if (tooltipModel.opacity === 0) return;
-                        const point = tooltipModel.dataPoints?.[0];
-                        if (!point) return;
+                        const tooltipModel = context.tooltip
+                        const point = tooltipModel.dataPoints?.[0]      // チャートに表示される最初のデータ
 
-                        const date = format(new Date(point.parsed.x), "yyyy-MM-dd");
-                        const datasetIndex = point.datasetIndex;
-                        const type = datasetIndex === 0 ? 'high' : 'row';
+                        if (tooltipModel.opacity === 0) return
+
+                        if (!point) return
+
+                        const date = format(new Date(point.parsed.x), "yyyy-MM-dd")
+                        const datasetIndex = point.datasetIndex
+                        const type = datasetIndex === 0 ? 'high' : 'row'
 
                         if (chartCanvas.value) {
-                            chartCanvas.value.onclick = () => openModal(date, type);
+
+                            // メモを入力するモーダルを開く
+                            chartCanvas.value.onclick = () => openMemoModal(date, type)
                         }
                     }
                 }
@@ -447,3 +503,41 @@ onMounted(async () => {
     });
 });
 </script>
+
+<style lang="scss">
+.value-wrap {
+    display:flex;
+    column-gap:40px;
+}
+.orange {
+    display: inline-block;
+    width: 30px;
+    height: 5px;
+    background-color: orange;
+    margin-left:5px;
+    margin-bottom:4px;
+}
+.green {
+    display: inline-block;
+    width: 30px;
+    height: 5px;
+    background-color: green;
+    margin-left:5px;
+    margin-bottom:4px;
+}
+.gray {
+    display: inline-block;
+    width: 30px;
+    height: 5px;
+    background-color: gray;
+    margin-left:5px;
+    margin-bottom:4px;
+}
+.purple {
+    display: inline-block;
+    width: 30px;
+    height: 5px;
+    background-color: purple;
+    margin-left:5px;
+}
+</style>

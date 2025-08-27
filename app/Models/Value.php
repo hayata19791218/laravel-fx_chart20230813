@@ -58,7 +58,8 @@ class Value extends Model
     * チャートの値の表示
     */
     function valueAdmin($request){
-        $value = Value::all();
+        $value = Value::orderBy('created_at', 'desc')->get();
+
         return $value;
     }
 
