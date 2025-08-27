@@ -15,9 +15,19 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('fx:fetch')->everyThreeHours();
-        $schedule->command('app:aggregate-daily-fx-rates')->dailyAt('00:01');
-        $schedule->command('valuelogs:clear')->dailyAt('00:02');
+        $schedule->command('fx:fetch')
+                 ->everyThreeHours()
+                 ->weekdays();
+        $schedule->command('app:aggregate-daily-fx-rates')
+                 ->dailyAt('00:01')
+                 ->when(function () {
+                    return now()->dayOfWeek !== 0;
+                 });
+        $schedule->command('valuelogs:clear')
+                 ->dailyAt('00:02')
+                 ->when(function () {
+                    return now()->dayOfWeek !== 0;
+                 });
     }
 
     /**

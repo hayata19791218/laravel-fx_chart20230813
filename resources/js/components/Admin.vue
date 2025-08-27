@@ -1,22 +1,46 @@
 <template>
-  <div class="mt-10">
-    <div v-if="message" class="mb-4 p-2 bg-green-100 text-green-800 rounded text-center">{{ message }}</div>
+<div class="mt-10">
+    <div class="fixed right-10 top-1/2 -translate-y-1/2 z- flex flex-col gap-2">
+        <button
+            @click="scrollToTop"
+            class="px-3 py-2 rounded bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+        >↑ 上へ</button>
+        <button
+            @click="scrollToBottom"
+            class="px-3 py-2 rounded bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
+        >↓ 下へ</button>
+    </div>
+    <div 
+        v-if="message" 
+        class="mb-4 p-2 bg-green-100 text-green-800 rounded text-center"
+    >{{ message }}</div>
     <h1 class="text-2xl font-bold mb-4 text-center">管理画面</h1>
+    <div class="mb-4">
+        <a href="/" class="text-blue-500 mr-4">チャートのページに戻る</a>
+    </div>
     <table class="w-full border">
         <thead>
             <tr class="bg-gray-200">
                 <th class="p-2 border border-gray-300">日付</th>
                 <th class="p-2 border border-gray-300">最高値</th>
+                <th class="p-2 border border-gray-300">最高値のメモ</th>
                 <th class="p-2 border border-gray-300">最安値</th>
+                <th class="p-2 border border-gray-300">最安値のメモ</th>
                 <th class="p-2 border border-gray-300">編集</th>
                 <th class="p-2 border border-gray-300">削除</th>
             </tr>
         </thead>
         <tbody>
-            <tr v-for="item in editDatas" :key="item.id" class="text-center border-t">
+            <tr 
+                v-for="item in editDatas" 
+                :key="item.id" 
+                class="text-center border-t"
+            >
                 <td class="border border-gray-300">{{ item.date }}</td>
                 <td class="border border-gray-300">{{ item.high_value }}</td>
+                <td class="border border-gray-300 w-[20%]">{{ item.high_value_memo }}</td>
                 <td class="border border-gray-300">{{ item.row_value }}</td>
+                <td class="border border-gray-300 w-[20%]">{{ item.row_value_memo }}</td>
                 <td class="border border-gray-300"><a :href="`/api/admin/edit/${item.id}`" class="text-blue-500 hover:underline">編集</a></td>
                 <td class="border border-gray-300"><button @click="deleteItem(item.id)" class="text-red-500 hover:underline">削除</button></td>
             </tr>
@@ -36,12 +60,22 @@ interface EditData {
     id: number;
     date: string;
     high_value: string;
+    high_value_memo: string;
     row_value: string;
+    row_value_memo: string;
 }
 
 const editDatas = ref<EditData[]>([]);
 const csrf = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
 const message = ref<string>('');
+
+const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+const scrollToBottom = () => {
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
 
 onMounted(async () => {
     const response = await axios.get<EditData[]>('/api/admin/value-data');  
